@@ -1,0 +1,4 @@
+{
+  "title": "Delete conversation",
+  "description": "Adds a Delete conversation action to the sidebar session menu: removes that conversation's local log and list cache, then refreshes the list immediately."
+}

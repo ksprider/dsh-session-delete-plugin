@@ -1,0 +1,42 @@
+{
+  "name": "@local/dsh-session-delete",
+  "version": "1.0.0",
+  "description": "Adds a \"Delete conversation\" action to the DeepSeek Harness sidebar session menu: removes that conversation's local log and list cache, then refreshes the list immediately.",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "bundle",
+    "session",
+    "delete"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ksprider/dsh-session-delete-plugin.git"
+  },
+  "author": "King <king@kspider.xyz>",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-workspace"]
+    }
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT"
+}
