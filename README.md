@@ -28,7 +28,6 @@ dsh plugin --profile desktop add https://github.com/ksprider/dsh-session-delete-
 或在 GUI 里操作：**侧边栏 → 插件 → 安装**，把上面的地址粘进去。
 安装完成后**重启 DeepSeek Harness**，宿主与页面会一起加载插件。
 
-仓库根目录就是包的根目录（`package.json` 在最外层），因此直接使用仓库地址即可。
 
 ### 固定版本
 
