@@ -1,23 +1,26 @@
 /**
- * Checks the session-delete plugin's path re-derivation against the Host's own
+ * Checks the plugin's path re-derivation against the Host's own
  * projectKey/encodeSegment, read straight out of the installed Harness bundle.
+ *
+ * The Harness install is located through, in order:
+ *   $DSH_APP_ASAR, $DSH_HOME/../app.asar (unlikely), the macOS default path.
  *
  * Run:
  *   node tests/verify-plugin.mjs
  */
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 
-const APP_ASAR = '/Applications/DeepSeek Harness.app/Contents/Resources/app.asar';
-const HOST_LIB_CACHE = '/tmp/y/dsh__node_modules__@deepseek-ai__dsh-session-persistence-jsonl__lib__index.js';
+const APP_ASAR =
+  process.env.DSH_APP_ASAR ??
+  '/Applications/DeepSeek Harness.app/Contents/Resources/app.asar';
 
 /**
  * Read one file out of the Harness asar by its internal path.
  *
  * The asar layout is a Pickle header: two UInt32 length words, the JSON index,
- * then the file data. This keeps the test self-contained on a fresh machine
- * (no dependency on any earlier extraction).
+ * then the file data. Reading it directly keeps the test self-contained on a
+ * fresh machine (no dependency on any earlier extraction).
  *
  * @param internalPath - asar-internal path of the file.
  * @returns the file's UTF-8 text.
@@ -41,7 +44,6 @@ function readFromAsar(internalPath) {
 
 /** The Host's shipped JSONL backend: the authority for both path functions. */
 function hostSource() {
-  if (existsSync(HOST_LIB_CACHE)) return readFileSync(HOST_LIB_CACHE, 'utf8');
   return readFromAsar('dsh/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/lib/index.js');
 }
 
@@ -71,8 +73,8 @@ const hostEncodeSegment = extractFunction(hostSource(), 'encodeSegment');
 const mine = await import('../index.js');
 
 const cwds = [
-  '/Users/mac166/Documents/deepseek-harness/default-workspace',
   '/Users/me/work',
+  '/Users/me/work/deep-project',
   '/',
   '',
   '/Users/me/my project/子目录',
@@ -102,17 +104,17 @@ for (const id of ids) {
   assert.equal(mine.encodeSegment(id), hostEncodeSegment(id), `encodeSegment(${JSON.stringify(id)})`);
 }
 
-// End-to-end path shape for the real workspace on this machine.
-const home = '/Users/mac166/.dsh';
-const artifacts = mine.sessionArtifacts(home, 'session-abc', '/Users/mac166/Documents/deepseek-harness/default-workspace');
+// End-to-end path shape for a representative install.
+const home = '/home/user/.dsh';
+const artifacts = mine.sessionArtifacts(home, 'session-abc', '/home/user/projects/my project');
 assert.equal(
   artifacts.logDirs[0],
-  '/Users/mac166/.dsh/sessions/--Users-mac166-Documents-deepseek-harness-default-workspace--/session-abc',
-  'log dir shape',
+  '/home/user/.dsh/sessions/--home-user-projects-my~0020project--/session-abc',
+  'log dir shape (a space in the path is escaped as ~0020, as the Host does)',
 );
 assert.equal(
   artifacts.cachePath,
-  '/Users/mac166/.dsh/storages/session_projcache/sessions/session-abc.json',
+  '/home/user/.dsh/storages/session_projcache/sessions/session-abc.json',
   'cache path shape',
 );
 

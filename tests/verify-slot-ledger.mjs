@@ -18,9 +18,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const APP_ASAR = '/Applications/DeepSeek Harness.app/Contents/Resources/app.asar';
+const APP_ASAR =
+  process.env.DSH_APP_ASAR ??
+  '/Applications/DeepSeek Harness.app/Contents/Resources/app.asar';
 const SLOTS_INTERNAL = 'dsh/node_modules/@deepseek-ai/dsh-client-ui-slots/lib/index.js';
-const CACHE = '/tmp/y/dsh__node_modules__@deepseek-ai__dsh-client-ui-slots__lib__index.js';
 
 /**
  * Read one file out of the installed asar (Pickle header + JSON index).
@@ -41,13 +42,9 @@ function readFromAsar(internalPath) {
   return archive.subarray(offset, offset + node.size).toString('utf8');
 }
 
-/** The slots core source, from the extracted cache or straight from the asar. */
+/** The slots core source, read straight out of the installed Harness archive. */
 function slotsSource() {
-  try {
-    return readFileSync(CACHE, 'utf8');
-  } catch {
-    return readFromAsar(SLOTS_INTERNAL);
-  }
+  return readFromAsar(SLOTS_INTERNAL);
 }
 
 /** Stage the slots core as a real ESM module and import it. */
